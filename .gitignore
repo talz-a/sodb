@@ -31,5 +31,23 @@
 *.out
 *.app
 
+# Visual Studio
 .vs
 out
+
+# Build directories
+build/
+build*/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+DartConfiguration.tcl
+Testing/
+
+# vcpkg installed files
+vcpkg_installed/
