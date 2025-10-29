@@ -1,4 +1,4 @@
-add_library(libsodb libsodb.cpp)
+add_library(libsodb process.cpp)
 add_library(sodb::libsodb ALIAS libsodb)
 
 set_target_properties(
@@ -18,7 +18,7 @@ target_include_directories(libsodb
 
 include(GNUInstallDirs)
 install(TARGETS libsodb
-    EXPORT sodb-targets
+    EXPORT   sodb-targets
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
