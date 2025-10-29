@@ -1,53 +1,30 @@
-# Prerequisites
-*.d
+# Build directories
+build/
+cmake-build-*/
 
-# Compiled Object files
-*.slo
-*.lo
+# Compiled files
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
 *.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
-*.lib
-
-# Executables
 *.exe
 *.out
 *.app
 
-# Visual Studio
-.vs
-out
-
-# Build directories
-build/
-build*/
-cmake-build-*/
-
-# CMake generated files
+# CMake
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
 CTestTestfile.cmake
-DartConfiguration.tcl
 Testing/
 
-# vcpkg installed files
-vcpkg_installed/
+# Clangd
+.cache/
+compile_commands.json
+
+# Editor/IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
