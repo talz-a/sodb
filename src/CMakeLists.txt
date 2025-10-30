@@ -1,4 +1,4 @@
-add_library(libsodb process.cpp)
+add_library(libsodb process.cpp pipe.cpp)
 add_library(sodb::libsodb ALIAS libsodb)
 
 set_target_properties(

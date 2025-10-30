@@ -3,23 +3,46 @@
 #include <sys/wait.h>
 
 #include <libsodb/error.hpp>
+#include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
+
+namespace {
+void exit_with_perror(sodb::pipe &channel, std::string const &prefix) {
+    auto message = prefix + ": " + std::strerror(errno);
+    channel.write(reinterpret_cast<std::byte *>(message.data()),
+                  message.size());
+    exit(-1);
+}
+} // namespace
 
 std::unique_ptr<sodb::process>
 sodb::process::launch(std::filesystem::path path) {
     pid_t pid;
+
+    pipe channel(true);
 
     if ((pid = fork()) < 0) {
         error::send_errno("fork failed");
     }
 
     if (pid == 0) {
+        channel.close_read();
         if (ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
-            error::send_errno("Tracing failed");
+            exit_with_perror(channel, "Tracing failed");
         }
         if (execlp(path.c_str(), path.c_str(), nullptr) < 0) {
-            error::send_errno("exec failed");
+            exit_with_perror(channel, "exec failed");
         }
+    }
+
+    channel.close_write();
+    auto data = channel.read();
+    channel.close_read();
+
+    if (data.size() > 0) {
+        waitpid(pid, nullptr, 0);
+        auto chars = reinterpret_cast<char *>(data.data());
+        error::send(std::string(chars, chars + data.size()));
     }
 
     std::unique_ptr<process> proc(new process(pid, true));
