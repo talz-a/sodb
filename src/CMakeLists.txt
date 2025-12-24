@@ -9,7 +9,7 @@ set_target_properties(
 target_compile_features(libsodb PUBLIC cxx_std_23)
 
 target_include_directories(libsodb
-    PUBLIC 
+    PUBLIC
         $<INSTALL_INTERFACE::include>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     PRIVATE

@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
 #include <algorithm>
 #include <iostream>
 #include <libsodb/error.hpp>
@@ -15,12 +14,12 @@
 #include <vector>
 
 namespace {
-std::unique_ptr<sodb::process> attach(int argc, const char **argv) {
+std::unique_ptr<sodb::process> attach(int argc, const char** argv) {
     if (argc == 3 && argv[1] == std::string_view("-p")) {
         pid_t pid = std::atoi(argv[2]);
         return sodb::process::attach(pid);
     } else {
-        const char *program_path = argv[1];
+        const char* program_path = argv[1];
         return sodb::process::launch(program_path);
     }
 }
@@ -43,26 +42,25 @@ bool is_prefix(std::string_view str, std::string_view of) {
     return std::equal(str.begin(), str.end(), of.begin());
 }
 
-void print_stop_reason(const sodb::process &process, sodb::stop_reason reason) {
+void print_stop_reason(const sodb::process& process, sodb::stop_reason reason) {
     std::print("Process {} ", process.pid());
     switch (reason.reason) {
-    case sodb::process_state::exited:
-        std::print("exited with status {}", static_cast<int>(reason.info));
-        break;
-    case sodb::process_state::terminated:
-        std::print("terminated with signal {}", sigabbrev_np(reason.info));
-        break;
-    case sodb::process_state::stopped:
-        std::print("stopped with signal {}", sigabbrev_np(reason.info));
-        break;
-    case sodb::process_state::running:
-        break;
+        case sodb::process_state::exited:
+            std::print("exited with status {}", static_cast<int>(reason.info));
+            break;
+        case sodb::process_state::terminated:
+            std::print("terminated with signal {}", sigabbrev_np(reason.info));
+            break;
+        case sodb::process_state::stopped:
+            std::print("stopped with signal {}", sigabbrev_np(reason.info));
+            break;
+        case sodb::process_state::running:
+            break;
     }
     std::println("");
 }
 
-void handle_command(std::unique_ptr<sodb::process> &process,
-                    std::string_view line) {
+void handle_command(std::unique_ptr<sodb::process>& process, std::string_view line) {
     auto args = split(line, ' ');
     auto command = args[0];
 
@@ -75,8 +73,8 @@ void handle_command(std::unique_ptr<sodb::process> &process,
     }
 }
 
-void main_loop(std::unique_ptr<sodb::process> &process) {
-    char *line = nullptr;
+void main_loop(std::unique_ptr<sodb::process>& process) {
+    char* line = nullptr;
     while ((line = readline("sodb> ")) != nullptr) {
         std::string line_str;
 
@@ -94,15 +92,15 @@ void main_loop(std::unique_ptr<sodb::process> &process) {
         if (!line_str.empty()) {
             try {
                 handle_command(process, line_str);
-            } catch (const sodb::error &err) {
+            } catch (const sodb::error& err) {
                 std::cout << err.what() << '\n';
             }
         }
     }
 }
-} // namespace
+}  // namespace
 
-int main(int argc, const char **argv) {
+int main(int argc, const char** argv) {
     if (argc == 1) {
         std::cerr << "No arguments given\n";
         return -1;
@@ -111,7 +109,7 @@ int main(int argc, const char **argv) {
     try {
         auto process = attach(argc, argv);
         main_loop(process);
-    } catch (const sodb::error &err) {
+    } catch (const sodb::error& err) {
         std::cout << err.what() << '\n';
     }
 }

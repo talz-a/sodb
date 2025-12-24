@@ -1,7 +1,7 @@
 #include <fcntl.h>
+#include <unistd.h>
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
-#include <unistd.h>
 #include <utility>
 
 sodb::pipe::pipe(bool close_on_exec) {
@@ -15,9 +15,13 @@ sodb::pipe::~pipe() {
     close_write();
 }
 
-int sodb::pipe::release_read() { return std::exchange(fds_[read_fd], -1); }
+int sodb::pipe::release_read() {
+    return std::exchange(fds_[read_fd], -1);
+}
 
-int sodb::pipe::release_write() { return std::exchange(fds_[write_fd], -1); }
+int sodb::pipe::release_write() {
+    return std::exchange(fds_[write_fd], -1);
+}
 
 void sodb::pipe::close_read() {
     if (fds_[read_fd] != -1) {
@@ -41,11 +45,11 @@ std::vector<std::byte> sodb::pipe::read() {
         error::send_errno("Could not read from pipe");
     }
 
-    auto bytes = reinterpret_cast<std::byte *>(buf);
+    auto bytes = reinterpret_cast<std::byte*>(buf);
     return std::vector<std::byte>(bytes, bytes + chars_read);
 }
 
-void sodb::pipe::write(std::byte *from, std::size_t bytes) {
+void sodb::pipe::write(std::byte* from, std::size_t bytes) {
     if (::write(fds_[write_fd], from, bytes) < 0) {
         error::send_errno("Could not write to pipe");
     }

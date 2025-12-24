@@ -1,22 +1,19 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
 
 namespace {
-void exit_with_perror(sodb::pipe &channel, std::string const &prefix) {
+void exit_with_perror(sodb::pipe& channel, std::string const& prefix) {
     auto message = prefix + ": " + std::strerror(errno);
-    channel.write(reinterpret_cast<std::byte *>(message.data()),
-                  message.size());
+    channel.write(reinterpret_cast<std::byte*>(message.data()), message.size());
     exit(-1);
 }
-} // namespace
+}  // namespace
 
-std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
-                                                     bool debug) {
+std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path, bool debug) {
     pid_t pid;
 
     pipe channel(true);
@@ -41,7 +38,7 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     if (data.size() > 0) {
         waitpid(pid, nullptr, 0);
-        auto chars = reinterpret_cast<char *>(data.data());
+        auto chars = reinterpret_cast<char*>(data.data());
         error::send(std::string(chars, chars + data.size()));
     }
 

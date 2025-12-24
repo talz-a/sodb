@@ -1,8 +1,8 @@
+#include <signal.h>
 #include <catch2/catch_test_macros.hpp>
 #include <fstream>
 #include <libsodb/error.hpp>
 #include <libsodb/process.hpp>
-#include <signal.h>
 
 using namespace sodb;
 
@@ -20,7 +20,7 @@ char get_process_status(pid_t pid) {
     auto index_of_status_indicator = index_of_last_parenthesis + 2;
     return data[index_of_status_indicator];
 }
-} // namespace
+}  // namespace
 
 TEST_CASE("process::launch success", "[process]") {
     auto proc = process::launch("yes");
