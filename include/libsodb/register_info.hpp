@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sys/user.h>
 #include <algorithm>
 #include <cstdint>
 #include <libsodb/error.hpp>
@@ -36,8 +37,7 @@ template <class F>
 const register_info& register_info_by(F f) {
     auto it = std::find_if(std::begin(g_register_infos), std::end(g_register_infos), f);
 
-    if (it == std::end(g_register_infos))
-        error::send("Can't find register info.");
+    if (it == std::end(g_register_infos)) error::send("Can't find register info.");
 
     return *it;
 }

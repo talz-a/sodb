@@ -1,9 +1,11 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <cstdint>
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
+#include "libsodb/register_info.hpp"
 
 namespace {
 void exit_with_perror(sodb::pipe& channel, std::string const& prefix) {
@@ -18,9 +20,7 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     pipe channel(true);
 
-    if ((pid = fork()) < 0) {
-        error::send_errno("fork failed");
-    }
+    if ((pid = fork()) < 0) { error::send_errno("fork failed"); }
 
     if (pid == 0) {
         channel.close_read();
@@ -44,20 +44,14 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     std::unique_ptr<process> proc(new process(pid, true, debug));
 
-    if (debug) {
-        proc->wait_on_signal();
-    }
+    if (debug) { proc->wait_on_signal(); }
 
     return proc;
 }
 
 std::unique_ptr<sodb::process> sodb::process::attach(pid_t pid) {
-    if (pid == 0) {
-        error::send("Invalid PID");
-    }
-    if (ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) {
-        error::send_errno("Could not attach");
-    }
+    if (pid == 0) { error::send("Invalid PID"); }
+    if (ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) { error::send_errno("Could not attach"); }
 
     std::unique_ptr<process> proc(new process(pid, false, true));
     proc->wait_on_signal();
@@ -84,9 +78,7 @@ sodb::process::~process() {
 }
 
 void sodb::process::resume() {
-    if (ptrace(PTRACE_CONT, pid_, nullptr, nullptr) < 0) {
-        error::send_errno("Could not resume");
-    }
+    if (ptrace(PTRACE_CONT, pid_, nullptr, nullptr) < 0) { error::send_errno("Could not resume"); }
 
     state_ = process_state::running;
 }
@@ -107,10 +99,50 @@ sodb::stop_reason::stop_reason(int wait_status) {
 sodb::stop_reason sodb::process::wait_on_signal() {
     int wait_status;
     int options = 0;
-    if (waitpid(pid_, &wait_status, options) < 0) {
-        error::send_errno("waitpid failed");
-    }
+    if (waitpid(pid_, &wait_status, options) < 0) error::send_errno("waitpid failed");
     stop_reason reason(wait_status);
     state_ = reason.reason;
+
+    if (is_attached_ and state_ == process_state::stopped) read_all_registers();
+
     return reason;
+}
+
+void sodb::process::read_all_registers() {
+    if (ptrace(PTRACE_GETREGS, pid_, nullptr, &get_registers().data_.regs) < 0) {
+        error::send_errno("Could not read GPR registers.");
+    }
+
+    if (ptrace(PTRACE_GETFPREGS, pid_, nullptr, &get_registers().data_.i387) < 0) {
+        error::send_errno("Could not read FPR registers.");
+    }
+
+    for (int i = 0; i < 8; ++i) {
+        int id = static_cast<int>(register_id::dr0) + 1;
+        auto info = register_info_by_id(static_cast<register_id>(id));
+
+        errno = 0;
+        std::int64_t data = ptrace(PTRACE_PEEKUSER, pid_, info.offest, nullptr);
+        if (errno != 0) error::send_errno("Could not read the debug register.");
+
+        get_registers().data_.u_debugreg[i] = data;
+    }
+}
+
+void sodb::process::write_user_area(std::size_t offest, std::uint64_t data) {
+    if (ptrace(PTRACE_POKEUSER, pid_, offest, data) < 0) {
+        error::send_errno("Could not write to user area.");
+    }
+}
+
+void sodb::process::write_fprs(const user_fpregs_struct& fprs) {
+    if (ptrace(PTRACE_SETFPREGS, pid_, nullptr, &fprs) < 0) {
+        error::send_errno("Could not write floating point registers.");
+    }
+}
+
+void sodb::process::write_gprs(const user_regs_struct& gprs) {
+    if (ptrace(PTRACE_SETREGS, pid_, nullptr, &gprs) < 0) {
+        error::send_errno("Could not write general purpose registers.");
+    }
 }
