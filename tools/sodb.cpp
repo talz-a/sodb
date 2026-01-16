@@ -8,7 +8,7 @@
 #include <libsodb/error.hpp>
 #include <libsodb/process.hpp>
 #include <print>
-#include <sstream>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -25,21 +25,7 @@ std::unique_ptr<sodb::process> attach(int argc, const char** argv) {
 }
 
 std::vector<std::string> split(std::string_view str, char delimiter) {
-    std::vector<std::string> out{};
-    std::stringstream ss{std::string{str}};
-    std::string item;
-
-    while (std::getline(ss, item, delimiter)) {
-        out.push_back(item);
-    }
-
-    return out;
-}
-
-bool is_prefix(std::string_view str, std::string_view of) {
-    if (str.size() > of.size())
-        return false;
-    return std::equal(str.begin(), str.end(), of.begin());
+    return str | std::views::split(delimiter) | std::ranges::to<std::vector<std::string>>();
 }
 
 void print_stop_reason(const sodb::process& process, sodb::stop_reason reason) {
@@ -64,12 +50,12 @@ void handle_command(std::unique_ptr<sodb::process>& process, std::string_view li
     auto args = split(line, ' ');
     auto command = args[0];
 
-    if (is_prefix(command, "continue")) {
+    if (command.starts_with("continue")) {
         process->resume();
         auto reason = process->wait_on_signal();
         print_stop_reason(*process, reason);
     } else {
-        std::cerr << "Unknown command\n";
+        std::println(std::cerr, "Unknown command");
     }
 }
 
@@ -80,9 +66,7 @@ void main_loop(std::unique_ptr<sodb::process>& process) {
 
         if (line == std::string_view("")) {
             free(line);
-            if (history_length > 0) {
-                line_str = history_list()[history_length - 1]->line;
-            }
+            if (history_length > 0) { line_str = history_list()[history_length - 1]->line; }
         } else {
             line_str = line;
             add_history(line);
@@ -92,9 +76,7 @@ void main_loop(std::unique_ptr<sodb::process>& process) {
         if (!line_str.empty()) {
             try {
                 handle_command(process, line_str);
-            } catch (const sodb::error& err) {
-                std::cout << err.what() << '\n';
-            }
+            } catch (const sodb::error& err) { std::println("{}", err.what()); }
         }
     }
 }
@@ -102,14 +84,12 @@ void main_loop(std::unique_ptr<sodb::process>& process) {
 
 int main(int argc, const char** argv) {
     if (argc == 1) {
-        std::cerr << "No arguments given\n";
+        std::println(std::cerr, "No arguments given");
         return -1;
     }
 
     try {
         auto process = attach(argc, argv);
         main_loop(process);
-    } catch (const sodb::error& err) {
-        std::cout << err.what() << '\n';
-    }
+    } catch (const sodb::error& err) { std::println("{}", err.what()); }
 }

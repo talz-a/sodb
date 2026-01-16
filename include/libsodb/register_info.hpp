@@ -35,10 +35,8 @@ inline constexpr const register_info g_register_infos[] = {
 
 template <class F>
 const register_info& register_info_by(F f) {
-    auto it = std::find_if(std::begin(g_register_infos), std::end(g_register_infos), f);
-
+    auto it = std::ranges::find_if(g_register_infos, f);
     if (it == std::end(g_register_infos)) error::send("Can't find register info.");
-
     return *it;
 }
 

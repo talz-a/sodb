@@ -5,7 +5,8 @@
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
-#include "libsodb/register_info.hpp"
+#include <libsodb/register_info.hpp>
+#include <utility>
 
 namespace {
 void exit_with_perror(sodb::pipe& channel, std::string const& prefix) {
@@ -118,7 +119,7 @@ void sodb::process::read_all_registers() {
     }
 
     for (int i = 0; i < 8; ++i) {
-        int id = static_cast<int>(register_id::dr0) + 1;
+        auto id = std::to_underlying(register_id::dr0) + i;
         auto info = register_info_by_id(static_cast<register_id>(id));
 
         errno = 0;
