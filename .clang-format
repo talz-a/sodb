@@ -1,16 +1,15 @@
+---
 BasedOnStyle: Chromium
+Language: Cpp
+Standard: Latest
+
 IndentWidth: 4
 ColumnLimit: 100
+AllowShortIfStatementsOnASingleLine: true
 
-# Just putting those `&` and `*` on the right side. I care about readability, not language legalese.
 DerivePointerAlignment: false
 PointerAlignment: Left
 
-# When wrapping function arguments, give them each a line.
 BinPackArguments: false
-# I don't want half indents for access modifiers.
 IndentAccessModifiers: false
 AccessModifierOffset: -4
-
-AllowShortIfStatementsOnASingleLine: AllIfsAndElse
-AllowShortBlocksOnASingleLine: Always

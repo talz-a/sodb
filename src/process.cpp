@@ -21,7 +21,9 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     pipe channel(true);
 
-    if ((pid = fork()) < 0) { error::send_errno("fork failed"); }
+    if ((pid = fork()) < 0) {
+        error::send_errno("fork failed");
+    }
 
     if (pid == 0) {
         channel.close_read();
@@ -45,14 +47,20 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     std::unique_ptr<process> proc(new process(pid, true, debug));
 
-    if (debug) { proc->wait_on_signal(); }
+    if (debug) {
+        proc->wait_on_signal();
+    }
 
     return proc;
 }
 
 std::unique_ptr<sodb::process> sodb::process::attach(pid_t pid) {
-    if (pid == 0) { error::send("Invalid PID"); }
-    if (ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) { error::send_errno("Could not attach"); }
+    if (pid == 0) {
+        error::send("Invalid PID");
+    }
+    if (ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) {
+        error::send_errno("Could not attach");
+    }
 
     std::unique_ptr<process> proc(new process(pid, false, true));
     proc->wait_on_signal();
@@ -79,7 +87,9 @@ sodb::process::~process() {
 }
 
 void sodb::process::resume() {
-    if (ptrace(PTRACE_CONT, pid_, nullptr, nullptr) < 0) { error::send_errno("Could not resume"); }
+    if (ptrace(PTRACE_CONT, pid_, nullptr, nullptr) < 0) {
+        error::send_errno("Could not resume");
+    }
 
     state_ = process_state::running;
 }

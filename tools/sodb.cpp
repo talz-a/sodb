@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <algorithm>
 #include <iostream>
 #include <libsodb/error.hpp>
 #include <libsodb/process.hpp>
@@ -66,7 +65,9 @@ void main_loop(std::unique_ptr<sodb::process>& process) {
 
         if (line == std::string_view("")) {
             free(line);
-            if (history_length > 0) { line_str = history_list()[history_length - 1]->line; }
+            if (history_length > 0) {
+                line_str = history_list()[history_length - 1]->line;
+            }
         } else {
             line_str = line;
             add_history(line);
@@ -76,7 +77,9 @@ void main_loop(std::unique_ptr<sodb::process>& process) {
         if (!line_str.empty()) {
             try {
                 handle_command(process, line_str);
-            } catch (const sodb::error& err) { std::println("{}", err.what()); }
+            } catch (const sodb::error& err) {
+                std::println("{}", err.what());
+            }
         }
     }
 }
@@ -91,5 +94,7 @@ int main(int argc, const char** argv) {
     try {
         auto process = attach(argc, argv);
         main_loop(process);
-    } catch (const sodb::error& err) { std::println("{}", err.what()); }
+    } catch (const sodb::error& err) {
+        std::println("{}", err.what());
+    }
 }
