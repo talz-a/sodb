@@ -12,3 +12,7 @@ target_compile_definitions(tests PRIVATE
 target_compile_definitions(tests PRIVATE
     REG_WRITE_PATH="$<TARGET_FILE:reg_write>"
 )
+
+target_compile_definitions(tests PRIVATE
+    REG_READ_PATH="$<TARGET_FILE:reg_read>"
+)
