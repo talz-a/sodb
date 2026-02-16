@@ -8,3 +8,7 @@ target_compile_definitions(tests PRIVATE
 target_compile_definitions(tests PRIVATE
     END_IMMEDIATELY_PATH="$<TARGET_FILE:end_immediately>"
 )
+
+target_compile_definitions(tests PRIVATE
+    REG_WRITE_PATH="$<TARGET_FILE:reg_write>"
+)

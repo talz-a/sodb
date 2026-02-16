@@ -1,6 +1,7 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <cstdint>
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
@@ -16,7 +17,9 @@ void exit_with_perror(sodb::pipe& channel, std::string const& prefix) {
 }
 }  // namespace
 
-std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path, bool debug) {
+std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
+                                                     bool debug,
+                                                     std::optional<int> stdout_replacement) {
     pid_t pid;
 
     pipe channel(true);
@@ -27,9 +30,17 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
 
     if (pid == 0) {
         channel.close_read();
+
+        if (stdout_replacement) {
+            if (dup2(*stdout_replacement, STDOUT_FILENO) < 0) {
+                exit_with_perror(channel, "stdout replacement failed.");
+            }
+        }
+
         if (debug and ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
             exit_with_perror(channel, "Tracing failed");
         }
+
         if (execlp(path.c_str(), path.c_str(), nullptr) < 0) {
             exit_with_perror(channel, "exec failed");
         }
