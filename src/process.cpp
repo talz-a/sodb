@@ -37,7 +37,7 @@ std::unique_ptr<sodb::process> sodb::process::launch(std::filesystem::path path,
             }
         }
 
-        if (debug and ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
+        if (debug && ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
             exit_with_perror(channel, "Tracing failed");
         }
 
@@ -125,7 +125,7 @@ sodb::stop_reason sodb::process::wait_on_signal() {
     stop_reason reason(wait_status);
     state_ = reason.reason;
 
-    if (is_attached_ and state_ == process_state::stopped) read_all_registers();
+    if (is_attached_ && state_ == process_state::stopped) read_all_registers();
 
     return reason;
 }
