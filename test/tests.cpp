@@ -5,7 +5,7 @@
 #include <libsodb/error.hpp>
 #include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
-#include "libsodb/register_info.hpp"
+#include <libsodb/register_info.hpp>
 
 using namespace sodb;
 
