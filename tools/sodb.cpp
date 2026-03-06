@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <cstring>
 #include <iostream>
 #include <libsodb/error.hpp>
 #include <libsodb/parse.hpp>
@@ -31,21 +32,23 @@ std::vector<std::string> split(std::string_view str, char delimiter) {
 }
 
 void print_stop_reason(const sodb::process& process, sodb::stop_reason reason) {
-    std::print("Process {} ", process.pid());
+    std::string message;
     switch (reason.reason) {
         case sodb::process_state::exited:
-            std::print("exited with status {}", static_cast<int>(reason.info));
+            message = std::format("Exited with status {}", static_cast<int>(reason.info));
             break;
         case sodb::process_state::terminated:
-            std::print("terminated with signal {}", sigabbrev_np(reason.info));
+            message = std::format("Terminated with signal {}", sigabbrev_np(reason.info));
             break;
         case sodb::process_state::stopped:
-            std::print("stopped with signal {}", sigabbrev_np(reason.info));
+            message = std::format("Stopped with signal {} at {:#x}",
+                                  sigabbrev_np(reason.info),
+                                  process.get_pc().addr());
             break;
         case sodb::process_state::running:
             break;
     }
-    std::println("");
+    std::println("Process {} {}", process.pid(), message);
 }
 
 void print_help(const std::vector<std::string>& args) {
