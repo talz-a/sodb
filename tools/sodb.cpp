@@ -3,7 +3,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <cstring>
 #include <iostream>
 #include <libsodb/error.hpp>
 #include <libsodb/parse.hpp>
@@ -85,16 +84,6 @@ void handle_register_read(sodb::process& process, const std::vector<std::string>
                                }
                            });
             return std::format("{::#04x}", as_ints);
-            // // 1. Format each individual element to a hex string
-            // auto hex_strings =
-            //     t | std::views::transform([](auto val) { return std::format("{:#04x}", val); });
-            //
-            // // 2. Join those strings with just a comma (no space!)
-            // auto joined = hex_strings | std::views::join_with(',');
-            //
-            // // 3. Convert the view back to a string and wrap in brackets
-            // // std::ranges::to is a C++23 addition that perfectly realizes views
-            // return std::format("[{}]", joined | std::ranges::to<std::string>())
         }
     };
 
