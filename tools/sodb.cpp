@@ -51,12 +51,13 @@ void print_stop_reason(const sodb::process& process, sodb::stop_reason reason) {
 }
 
 void print_help(const std::vector<std::string>& args) {
+    if (args.empty()) return;
     if (args.size() == 1) {
         std::println(std::cerr, R"(Available commands:
         continue - Resume the process
         register - Commands for operating on registers
         )");
-    } else if (args[1].starts_with("register")) {
+    } else if (args.size() >= 2 && args[1].starts_with("register")) {
         std::println(std::cerr, R"(Available commands:
         read
         read <register>
@@ -90,7 +91,7 @@ void handle_register_read(sodb::process& process, const std::vector<std::string>
     if (args.size() == 2 || (args.size() == 3 && args[2] == "all")) {
         for (auto& info : sodb::g_register_infos) {
             auto should_print = (args.size() == 3 || info.type == sodb::register_type::gpr) &&
-                                info.name != "origx_rax";
+                                info.name != "orig_rax";
             if (!should_print) continue;
             auto value = process.get_registers().read(info);
             std::println("{}:\t{}", info.name, std::visit(format, value));
@@ -157,6 +158,7 @@ void handle_register_write(sodb::process& process, const std::vector<std::string
 void handle_register_command(sodb::process& process, const std::vector<std::string>& args) {
     if (args.size() < 2) {
         print_help({"help", "register"});
+        return;
     }
 
     if (args[1].starts_with("read")) {
@@ -170,6 +172,7 @@ void handle_register_command(sodb::process& process, const std::vector<std::stri
 
 void handle_command(std::unique_ptr<sodb::process>& process, std::string_view line) {
     auto args = split(line, ' ');
+    if (args.empty()) return;
     auto command = args[0];
 
     if (command.starts_with("continue")) {
