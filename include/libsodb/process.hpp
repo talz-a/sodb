@@ -3,10 +3,12 @@
 #include <sys/types.h>
 #include <sys/user.h>
 #include <filesystem>
+#include <libsodb/breakpoint_site.hpp>
 #include <libsodb/registers.hpp>
 #include <libsodb/types.hpp>
 #include <memory>
 #include <optional>
+#include <vector>
 
 namespace sodb {
 enum class process_state { stopped, running, exited, terminated };
@@ -48,6 +50,8 @@ public:
         return virt_addr{get_registers().read_by_id_as<std::uint64_t>(register_id::rip)};
     }
 
+    breakpoint_site& create_breakpoint_site(virt_addr address);
+
 private:
     process(pid_t pid, bool terminate_on_end, bool is_attached)
         : pid_(pid),
@@ -62,5 +66,6 @@ private:
     bool is_attached_ = true;
     process_state state_ = process_state::stopped;
     std::unique_ptr<registers> registers_;
+    std::vector<std::unique_ptr<breakpoint_site>> breakpoint_sites_;
 };
 }  // namespace sodb
