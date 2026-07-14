@@ -7,7 +7,9 @@
 #include <libsodb/pipe.hpp>
 #include <libsodb/process.hpp>
 #include <libsodb/register_info.hpp>
+#include <memory>
 #include <utility>
+#include "libsodb/breakpoint_site.hpp"
 
 namespace {
 void exit_with_perror(sodb::pipe& channel, std::string const& prefix) {
@@ -167,4 +169,14 @@ void sodb::process::write_gprs(const user_regs_struct& gprs) {
     if (ptrace(PTRACE_SETREGS, pid_, nullptr, &gprs) < 0) {
         error::send_errno("Could not write general purpose registers.");
     }
+}
+
+sodb::breakpoint_site& sodb::process::create_breakpoint_site(virt_addr address) {
+    if (breakpoint_sites_.contains_address(address)) {
+        error::send(
+            std::format("Breakpoint site already created at {}.", std::to_string(address.addr())));
+    }
+
+    return breakpoint_sites_.push(
+        std::unique_ptr<breakpoint_site>(new breakpoint_site(*this, address)));
 }

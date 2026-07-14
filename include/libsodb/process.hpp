@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <libsodb/breakpoint_site.hpp>
 #include <libsodb/registers.hpp>
+#include <libsodb/stoppoint_collection.hpp>
 #include <libsodb/types.hpp>
 #include <memory>
 #include <optional>
@@ -52,6 +53,12 @@ public:
 
     breakpoint_site& create_breakpoint_site(virt_addr address);
 
+    stoppoint_collection<breakpoint_site>& breakpoint_sites() { return breakpoint_sites_; }
+
+    const stoppoint_collection<breakpoint_site>& breakpoint_sites() const {
+        return breakpoint_sites_;
+    }
+
 private:
     process(pid_t pid, bool terminate_on_end, bool is_attached)
         : pid_(pid),
@@ -66,6 +73,6 @@ private:
     bool is_attached_ = true;
     process_state state_ = process_state::stopped;
     std::unique_ptr<registers> registers_;
-    std::vector<std::unique_ptr<breakpoint_site>> breakpoint_sites_;
+    stoppoint_collection<breakpoint_site> breakpoint_sites_;
 };
 }  // namespace sodb
