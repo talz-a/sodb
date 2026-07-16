@@ -9,7 +9,6 @@
 #include <libsodb/types.hpp>
 #include <memory>
 #include <optional>
-#include <vector>
 
 namespace sodb {
 enum class process_state { stopped, running, exited, terminated };
